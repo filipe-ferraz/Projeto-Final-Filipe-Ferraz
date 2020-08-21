@@ -50,7 +50,7 @@ function love.load()
 
   mode = 0 -- 0 -> calculating ; 1 -> moving
   love.graphics.getBackgroundColor(255,255,255)
-	song = love.audio.newSource("ZeldaThemeSong.mp3","stream")
+	--song = love.audio.newSource("ZeldaThemeSong.mp3","stream")
 	--love.audio.play(song)
 	
 	map.load()
