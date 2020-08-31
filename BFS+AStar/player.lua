@@ -28,27 +28,40 @@ function player.update()
 end
 
 function player.move(cmd)
-	love.timer.sleep(.1)
+  local limitX
+  local limitY
+  local sleepTime 
+  if outside == true then
+    limitX = levelWidth
+    limitY = levelHeight
+    sleepTime = terrenoG[level[bloco.x][bloco.y].terreno]/100
+  else
+    limitX = 28
+    limitY = 28
+    sleepTime = terrenoG[dungeon[bloco.x][bloco.y].terreno]/100
+  end
+  sleepTime = .1
+	love.timer.sleep(sleepTime)
 	if cmd ~= nil then
 		--print(cmd)
 	end
 	
-	if cmd == 'right' then
+	if cmd == 'right' and bloco.x < limitX then
 			
 		--player.x = player.x + 17.9
     bloco.x = bloco.x + 1
 			
-	elseif cmd == 'left' then
+	elseif cmd == 'left' and bloco.x > 1 then
 			
 		--player.x = player.x - 17.9
 		bloco.x = bloco.x - 1
 			
-	elseif cmd == 'up' then
+	elseif cmd == 'up' and bloco.y > 1 then
 			
 		--player.y = player.y - 17.9
 		bloco.y = bloco.y - 1
 			
-	elseif cmd == 'down' then
+	elseif cmd == 'down' and bloco.y < limitY then
 			
 		--player.y = player.y + 17.9
 		bloco.y = bloco.y + 1

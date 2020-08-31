@@ -1,6 +1,6 @@
 function love.conf(t)
 
-	t.version = "0.9.0"
+	t.version = "11.3.0"
 	
 	t.title = "Zelda"
 	t.window.width = 850

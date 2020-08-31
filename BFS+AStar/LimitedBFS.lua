@@ -1,6 +1,5 @@
-function LimitedBFS(start,goal)
+function LimitedBFS(start,goal,depth)
 	local current = {}
-  local depth = 2
 	current.x = start.x
 	current.y = start.y
 	current.father = nil
@@ -16,13 +15,12 @@ function LimitedBFS(start,goal)
 	
 	while #openList1 > 0 do
 		current = openList1[1]
-    if current.depth+1 == depth then
+    if current.depth+1 >= depth then
       return openList1, closedList1, false
     end
 		
 		if (current.x == goal.x and current.y == goal.y) then
-			Reconstruct_path(current)
-			return OpenList1, ClosedList1, true
+			return openList1, ClosedList1, true
 		end
 		
 		local neighbors = neighbors_nodes(current)
@@ -30,7 +28,7 @@ function LimitedBFS(start,goal)
 		for _,neighbor in pairs(neighbors) do
       if neighbor ~= nil then
         if (not_in(closedList1,neighbor) and not_in(openList1,neighbor) and valid(neighbor)) then
-          neighbor.cost = CalcG(level[neighbor.y][neighbor.x].terreno)
+          neighbor.cost = terrenoG[level[neighbor.y][neighbor.x].terreno]
           --neighbor.h = CalcH(neighbor,goal)
           neighbor.father = current
           neighbor.depth = current.depth+1
@@ -79,33 +77,6 @@ function reverse_path(way)
 		u = u - 1
 	end
 	create_path_cmds(final)
-end
-
---Retorna custo do novo passo
-function CalcG(terreno)
-	if terreno == 'g' then --grama
-		return 10
-	elseif terreno == 'f' then --floresta
-		return 100
-	elseif terreno == 's' then --areia
-		return 20
-	elseif terreno == 'm' then --montanha
-		return 450
-	elseif terreno == 'w' then --água
-		return 180
-	elseif terreno == 'v' then --chão (nas cavernas)
-		return 10
-	elseif terreno == 'i' then --parede (nas cavernas)
-		return 11  --invalid
-	elseif terreno == 'sd1' or terreno == 'sd2' or terreno == 'sd3' or terreno == 'sdc' then --entradas de cavernas
-		return 20
-	elseif terreno == 'gl' then --objetivo final
-		return 10
-	elseif terreno == 'vp1' or terreno == 'vp2' or terreno == 'vp3' then --objetivo (nas cavernas)
-		return 10
-	elseif terreno == 'vd' then --saída da caverna
-		return 10
-	end
 end
 
 --Calcula Heurística (distância entre euclidiana entre o ponto corrente e o objetivo)

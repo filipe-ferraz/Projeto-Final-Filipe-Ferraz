@@ -1,4 +1,4 @@
-function Astar(start,goal)
+function Astar(start,goal,closedList)
 	local current = {}
 	current.x = start.x
 	current.y = start.y
@@ -8,7 +8,7 @@ function Astar(start,goal)
 	current.h = CalcH(start,goal)
 	
 	local openList = {}
-	local closedList = {}
+	--local closedList = {}
 	
 	table.insert(openList,current)
 	
@@ -25,7 +25,7 @@ function Astar(start,goal)
 		for _,neighbor in pairs(neighbors) do
       if neighbor ~= nil then
         if (not_in(closedList,neighbor) and valid(neighbor)) then
-          neighbor.cost = CalcG(level[neighbor.y][neighbor.x].terreno)
+          neighbor.cost = terrenoG[level[neighbor.y][neighbor.x].terreno]
           neighbor.h = CalcH(neighbor,goal)
           neighbor.father = current
           neighbor.totalcost = 0
@@ -52,33 +52,6 @@ function Astar(start,goal)
 	end
 	-- no possible path
 	return 0
-end
-
---Retorna custo do novo passo
-function CalcG(terreno)
-	if terreno == 'g' then --grama
-		return 10
-	elseif terreno == 'f' then --floresta
-		return 100
-	elseif terreno == 's' then --areia
-		return 20
-	elseif terreno == 'm' then --montanha
-		return 450
-	elseif terreno == 'w' then --água
-		return 180
-	elseif terreno == 'v' then --chão (nas cavernas)
-		return 10
-	elseif terreno == 'i' then --parede (nas cavernas)
-		return 11  --invalid
-	elseif terreno == 'sd1' or terreno == 'sd2' or terreno == 'sd3' or terreno == 'sdc' then --entradas de cavernas
-		return 20
-	elseif terreno == 'gl' then --objetivo final
-		return 10
-	elseif terreno == 'vp1' or terreno == 'vp2' or terreno == 'vp3' then --objetivo (nas cavernas)
-		return 10
-	elseif terreno == 'vd' then --saída da caverna
-		return 10
-	end
 end
 
 --Calcula Heurística (distância entre euclidiana entre o ponto corrente e o objetivo)

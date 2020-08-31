@@ -21,6 +21,23 @@ function map.load()
   color.sd3 = {0,0,0}
   color.sdc = {0,0,0}
   color.gl = {0,0,0}
+  terrenoG = {}
+  terrenoG['g'] = 10 --grama
+	terrenoG['f'] = 100 -- florest
+	terrenoG['s'] = 20 --areia
+	terrenoG['m'] = 450 --montanha
+	terrenoG['w'] = 180 --água
+	terrenoG['v'] = 10 --chão (nas cavernas)
+	terrenoG['i'] = 11   --parede (nas cavernas)
+	terrenoG['sd1'] = 20 --entradas de cavernas
+  terrenoG['sd2'] = 20 --entradas de cavernas
+  terrenoG['sd3'] = 20 --entradas de cavernas
+  terrenoG['sdc'] = 20 --entradas de cavernas
+	terrenoG['gl'] = 10 --objetivo final
+	terrenoG['vp1'] = 10 --objetivo (nas cavernas)
+  terrenoG['vp2'] = 10 --objetivo (nas cavernas)
+  terrenoG['vp3'] = 10 --objetivo (nas cavernas)
+	terrenoG['vd'] = 10 --saída da caverna
 
   levelHeight = 42
   levelWidth = 42
@@ -225,13 +242,13 @@ function load_dungeon(mapa)
 end
 function cost_update(node)
 	if(mapa == 0) then
-		cost = cost + CalcG(level[node.y][node.x].terreno)
+		cost = cost + terrenoG[level[node.y][node.x].terreno]
 	elseif (mapa == 1) then
-		cost = cost + CalcG(dungeon[node.y][node.x].terreno)
+		cost = cost + terrenoG[dungeon[node.y][node.x].terreno]
 	elseif (mapa == 2) then
-		cost = cost + CalcG(dungeon[node.y][node.x].terreno)
+		cost = cost + terrenoG[dungeon[node.y][node.x].terreno]
 	else
-		cost = cost + CalcG(dungeon[node.y][node.x].terreno)
+		cost = cost + terrenoG[dungeon[node.y][node.x].terreno]
 	end
 	return cost
 end
@@ -239,11 +256,6 @@ end
 function terrain_update(bloco,mapa)
 	if(mapa == 0) then
 		return (level[bloco.y][bloco.x].terreno)
-	elseif (mapa == 1) then
-    print (bloco.y,bloco.x)
-		return (dungeon[bloco.y][bloco.x].terreno)
-	elseif (mapa == 2) then
-		return (dungeon[bloco.y][bloco.x].terreno)
 	else
 		return (dungeon[bloco.y][bloco.x].terreno)
 	end

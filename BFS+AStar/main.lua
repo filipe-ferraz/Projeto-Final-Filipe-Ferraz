@@ -3,6 +3,32 @@ require "player"
 require "LimitedBFS"
 require "AStar"
 
+function Reconstruct_path(curr)
+	local path = {}
+	local n = 1
+	while( curr.father ~= nil ) do
+		path[n] = curr
+		curr = curr.father
+
+		n = n + 1
+	end
+	path[n] = curr
+	return reverse_path(path)
+  
+end
+
+function reverse_path(way)
+	local final = {}
+	local u = #way
+	local s = 1
+	while u > 0 do
+		final[s] = way[u]
+		s = s + 1
+		u = u - 1
+	end
+	 return final
+end
+
 function create_path_cmds(path)	
 	for n=1,#path do
     if (n==#path) then
@@ -24,6 +50,7 @@ function love.load()
   local openList1 = {}
   local closedList1 = {}
   local BFSfim = false
+  BFSdepth = 100
   thread = {}
   totalcost = 0
   terrain = 'g'
@@ -66,6 +93,7 @@ end
 
 function love.update(dt)
 	if (terrain == 'sd1' and outside) then
+    mode = 0
 		mapa = 1
 		outside = false
     bloco.retX = bloco.x
@@ -75,6 +103,7 @@ function love.update(dt)
     bloco.x = dungeon_goalpoint[2].x
 		bloco.y = dungeon_goalpoint[2].y
 	elseif (terrain == 'sd2' and outside) then
+    mode = 0
 		mapa = 2
 		outside = false
     bloco.retX = bloco.x
@@ -84,6 +113,7 @@ function love.update(dt)
 		bloco.x = dungeon_goalpoint[2].x
 		bloco.y = dungeon_goalpoint[2].y
 	elseif (terrain == 'sd3' and outside) then
+    mode = 0
 		mapa = 3
 		outside = false
     bloco.retX = bloco.x
@@ -102,7 +132,7 @@ function love.update(dt)
 	end
   
   if mode == 0 then
-	
+    player.update()
 		--Program end
 		if act == 0 then
 			love.event.wait()
@@ -114,18 +144,30 @@ function love.update(dt)
 		
 		path_cmd = {}
 		if outside == true then
-			openList1, closedList1, BFSfim = LimitedBFS(startpoint,goalpoint[act])
-      for index, start in pairs(openList1) do
-        thread[index] = love.thread.newThread("thread.lua")
-        channel0:push({start, goalpoint[act],mapa,outside,index})
-        thread[index]:start()
+			openList1, closedList1, BFSfim = LimitedBFS(startpoint,goalpoint[act],BFSdepth)
+      if BFSfim then
+        finish = openList1[1]
+      else
+        if openList1 then
+          for index, threadStart in pairs(openList1) do
+            thread[index] = love.thread.newThread("thread.lua")
+            channel0:push({threadStart, goalpoint[act],mapa,outside,index,0,closedList1})
+            thread[index]:start()
+          end
+        end
       end
 		else
-			openList1, closedList1, BFSfim = LimitedBFS(startpoint,dungeon_goalpoint[dungeon_act])
-      for index, start in pairs(openList1) do
-        thread[index] = love.thread.newThread("thread.lua")
-        channel0:push({start, dungeon_goalpoint[dungeon_act],mapa,outside,index})
-        thread[index]:start()
+			openList1, closedList1, BFSfim = LimitedBFS(startpoint,dungeon_goalpoint[dungeon_act],BFSdepth)
+      if BFSfim then
+        finish = openList1[1]
+      else
+        if openList1 then
+          for index, threadStart in pairs(openList1) do
+            thread[index] = love.thread.newThread("thread.lua")
+            channel0:push({threadStart, dungeon_goalpoint[dungeon_act],mapa,outside,index,dungeon,closedList1})
+            thread[index]:start()
+          end
+        end
       end
 		end
     mode=2
@@ -147,25 +189,26 @@ function love.update(dt)
   if mode == 2 then
     if finish == false then
       finish = channelEnd:pop() or false
-    end
-    if finish ~= false and outside == true then
-      act = act - 1
-      dungeon_act = 1
-      dungeon_back = false
-      create_path_cmds(finish)
-      cmdCont = 1
-      mode = 1
-      finish = false
-    end
-    if finish  ~= false and outside == false then
-      if dungeon_act == 2 then
-        dungeon_back = true
+    else
+      if outside == true then
+        act = act - 1
+        dungeon_act = 1
+        dungeon_back = false
+        create_path_cmds(Reconstruct_path(finish))
+        cmdCont = 1
+        mode = 1
+        finish = false
       end
-      dungeon_act = dungeon_act + 1
-      create_path_cmds(finish)
-      cmdCont = 1
-      mode = 1
-      finish = false
+      if outside == false then
+        if dungeon_act == 2 then
+          dungeon_back = true
+        end
+        dungeon_act = dungeon_act + 1
+        create_path_cmds(Reconstruct_path(finish))
+        cmdCont = 1
+        mode = 1
+        finish = false
+      end
     end
   end
 end
@@ -178,5 +221,7 @@ function love.draw()
 	love.graphics.print("terreno: "..terrain,775,30)
 	love.graphics.print("x: "..bloco.x,775,60)
 	love.graphics.print("y: "..bloco.y,810,60)
-  if mode == 1 then love.graphics.print("move: "..path_cmd[cmdCont],775,90) end
+  if mode == 1 and path_cmd[cmdCont] then love.graphics.print("mv["..cmdCont.."]: "..path_cmd[cmdCont],775,90) end
+  love.graphics.print("startx: "..startpoint.x,775,120)
+  love.graphics.print("starty: "..startpoint.y,775,150)
 end
