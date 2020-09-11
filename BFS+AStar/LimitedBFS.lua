@@ -15,7 +15,7 @@ function LimitedBFS(start,goal,depth)
 	
 	while #openList1 > 0 do
 		current = openList1[1]
-    if current.depth+1 >= depth then
+    if current.depth >= depth then
       return openList1, closedList1, false
     end
 		
@@ -95,9 +95,9 @@ function neighbors_nodes(current)
 	local neighborNodeD = {}
   local size
   if (outside == true) then
-    size=42
+    size=levelSize
   else
-    size=28
+    size=dungeonSize
   end
 
 	if(current.x > 1) then

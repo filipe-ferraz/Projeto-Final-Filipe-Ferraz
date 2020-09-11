@@ -4,12 +4,14 @@ player = {}
 function player.load()
   --Inicialização de variáveis
   bloco = {}
-  bloco.x = 25
-  bloco.y = 28
+  bloco.x = spawnX
+  bloco.y = spawnY
   bloco.retX = 0
   bloco.retY = 0
-	player.x = 25*17.9  -- 26 on the map
-	player.y = 28*17.9  -- 29 on the map
+	--player.x = 25*17.9  -- 26 on the map
+	--player.y = 28*17.9  -- 29 on the map
+  player.x = spawnX*17.9
+  player.y = spawnY*17.9
   player.retX = 0
   player.retY = 0
 	
@@ -36,8 +38,8 @@ function player.move(cmd)
     limitY = levelHeight
     sleepTime = terrenoG[level[bloco.x][bloco.y].terreno]/100
   else
-    limitX = 28
-    limitY = 28
+    limitX = dungeonHeight
+    limitY = dungeonWidth
     sleepTime = terrenoG[dungeon[bloco.x][bloco.y].terreno]/100
   end
   sleepTime = .1

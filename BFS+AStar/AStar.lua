@@ -70,9 +70,9 @@ function neighbors_nodes(current)
 	local neighborNodeD = {}
   local size
   if (outside == true) then
-    size=42
+    size=levelSize
   else
-    size=28
+    size=dungeonSize
   end
 
 	if(current.x > 1) then

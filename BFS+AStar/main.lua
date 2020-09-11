@@ -3,6 +3,26 @@ require "player"
 require "LimitedBFS"
 require "AStar"
 
+function printcmd(text)
+  local f = io.open("Caminho.txt","a")
+  f:write("caminho"..text.."\n")
+  for i=1,#path_cmd do
+    f:write(path_cmd[#path_cmd-i+1].."\n")
+  end
+  io.close(f)
+end
+
+function printcoordinates(text,curr)
+  local f = io.open("Coordenadas.txt","a")
+  f:write("coordenadas"..text.."\n")
+  while( curr.father ~= nil ) do
+    f:write("x: "..curr.x.." y: "..curr.y.."\n")
+    curr = curr.father
+  end
+  f:write("x: "..curr.x.." y: "..curr.y.."\n")
+  io.close(f)
+end
+
 function Reconstruct_path(curr)
 	local path = {}
 	local n = 1
@@ -29,20 +49,22 @@ function reverse_path(way)
 	 return final
 end
 
-function create_path_cmds(path)	
+function create_path_cmds(path)
+	local cmd = {}
 	for n=1,#path do
     if (n==#path) then
-      path[n] = nil
+      --path[n] = nil
 		elseif(path[n+1].x == (path[n].x)-1) then
-			path_cmd[n] = 'left'
+			cmd[n] = 'left'
 		elseif(path[n+1].x == (path[n].x)+1) then
-			path_cmd[n] = 'right'
+			cmd[n] = 'right'
 		elseif(path[n+1].y == (path[n].y)-1) then
-			path_cmd[n] = 'up'
+			cmd[n] = 'up'
 		elseif(path[n+1].y == (path[n].y)+1) then
-			path_cmd[n] = 'down'
+			cmd[n] = 'down'
 		end
 	end
+  return cmd
 end
 
 function love.load()
@@ -50,7 +72,7 @@ function love.load()
   local openList1 = {}
   local closedList1 = {}
   local BFSfim = false
-  BFSdepth = 100
+  BFSdepth = 5
   thread = {}
   totalcost = 0
   terrain = 'g'
@@ -132,6 +154,7 @@ function love.update(dt)
 	end
   
   if mode == 0 then
+    channelEnd:clear()
     player.update()
 		--Program end
 		if act == 0 then
@@ -150,8 +173,10 @@ function love.update(dt)
       else
         if openList1 then
           for index, threadStart in pairs(openList1) do
+            path_cmd = create_path_cmds(Reconstruct_path(openList1[index]))
+            printcmd(" BFS "..index.." start "..threadStart.x.." "..threadStart.y)
             thread[index] = love.thread.newThread("thread.lua")
-            channel0:push({threadStart, goalpoint[act],mapa,outside,index,0,closedList1})
+            channel0:push({threadStart, goalpoint[act],mapa,outside,index,0,closedList1,path_cmd})
             thread[index]:start()
           end
         end
@@ -163,8 +188,10 @@ function love.update(dt)
       else
         if openList1 then
           for index, threadStart in pairs(openList1) do
+            path_cmd = create_path_cmds(Reconstruct_path(openList1[index]))
+            printcmd(" BFS "..index.." start "..threadStart.x.." "..threadStart.y)
             thread[index] = love.thread.newThread("thread.lua")
-            channel0:push({threadStart, dungeon_goalpoint[dungeon_act],mapa,outside,index,dungeon,closedList1})
+            channel0:push({threadStart, dungeon_goalpoint[dungeon_act],mapa,outside,index,dungeon,closedList1,path_cmd})
             thread[index]:start()
           end
         end
@@ -194,21 +221,24 @@ function love.update(dt)
         act = act - 1
         dungeon_act = 1
         dungeon_back = false
-        create_path_cmds(Reconstruct_path(finish))
-        cmdCont = 1
-        mode = 1
-        finish = false
-      end
-      if outside == false then
+      else
         if dungeon_act == 2 then
           dungeon_back = true
         end
         dungeon_act = dungeon_act + 1
-        create_path_cmds(Reconstruct_path(finish))
-        cmdCont = 1
-        mode = 1
-        finish = false
       end
+      path_cmd = {}
+      temp1 = finish[2]
+      temp2 = create_path_cmds(Reconstruct_path(finish[1]))
+      for i=1,#temp2 do
+        temp1[#temp1+1]=temp2[i]
+      end
+      path_cmd = temp1
+      printcmd(" completo")
+      printcoordinates(" completa",finish[1])
+      cmdCont = 1
+      mode = 1
+      finish = false
     end
   end
 end
@@ -224,4 +254,5 @@ function love.draw()
   if mode == 1 and path_cmd[cmdCont] then love.graphics.print("mv["..cmdCont.."]: "..path_cmd[cmdCont],775,90) end
   love.graphics.print("startx: "..startpoint.x,775,120)
   love.graphics.print("starty: "..startpoint.y,775,150)
+  love.graphics.print("mode: "..mode,775,180)
 end

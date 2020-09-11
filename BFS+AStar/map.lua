@@ -5,6 +5,7 @@ function map.load()
   --Inicialização de variáveis
   mapa = 0
   color = {}
+  color.st = {0,0,1}
   color.f = {0,51/255,0}
   color.g = {0,204/255,102/255}
   color.w = {65/255,105/255,225/255}
@@ -22,6 +23,7 @@ function map.load()
   color.sdc = {0,0,0}
   color.gl = {0,0,0}
   terrenoG = {}
+  terrenoG['st'] = 10 --ponto inicial
   terrenoG['g'] = 10 --grama
 	terrenoG['f'] = 100 -- florest
 	terrenoG['s'] = 20 --areia
@@ -38,9 +40,17 @@ function map.load()
   terrenoG['vp2'] = 10 --objetivo (nas cavernas)
   terrenoG['vp3'] = 10 --objetivo (nas cavernas)
 	terrenoG['vd'] = 10 --saída da caverna
+  spawnX=0
+  spawnY=0
 
-  levelHeight = 42
-  levelWidth = 42
+  levelSize = 42 --42 16
+  levelHeight = levelSize
+  levelWidth = levelSize
+  
+  dungeonSize = 28
+  dungeonHeight = dungeonSize
+  dungeonWidth = dungeonSize
+  
   lines = {}
   level = {}
   dungeon = {}
@@ -80,7 +90,10 @@ function map.load()
       node.x = j
       node.y = i
       node.cost = nil
-      if (k=='sd1') then
+      if (k=='st') then
+        spawnX=node.x
+        spawnY=node.y
+      elseif (k=='sd1') then
         set_goal(node,4)
       elseif (k=='sd2') then
         set_goal(node,3)
@@ -101,15 +114,15 @@ function map.draw()
 		for i=1,levelHeight do
 			for j=1,levelWidth do
 				love.graphics.setColor(color[level[i][j].terreno])
-				if (i == 28 and j == 25) then
-				love.graphics.setColor(0,0,255/255)
-				end
+				--if (i == 28 and j == 25) then
+				--love.graphics.setColor(0,0,255/255)
+				--end
 				love.graphics.rectangle("fill",j*17.9,i*17.9,17.9,17.9)
 			end
 		end
 	else
-		for i=1,28 do
-			for j=1,28 do
+		for i=1,dungeonHeight do
+			for j=1,dungeonWidth do
 				love.graphics.setColor(color[dungeon[i][j].terreno])
 				love.graphics.rectangle("fill",j*17.9,i*17.9,17.9,17.9)
 			end
@@ -139,7 +152,7 @@ function load_dungeon(mapa)
 			return nil
 		end
 
-		for i=1,28 do
+		for i=1,dungeonHeight do
 			dungeon[i] = {}
 		end
 
@@ -174,7 +187,7 @@ function load_dungeon(mapa)
 			return nil
 		end
 
-		for i=1,28 do
+		for i=1,dungeonHeight do
 			dungeon[i] = {}
 		end
 
@@ -208,7 +221,7 @@ function load_dungeon(mapa)
 		 return nil
 		end
 
-		for i=1,28 do
+		for i=1,dungeonHeight do
 			dungeon[i] = {}
 		end
 
