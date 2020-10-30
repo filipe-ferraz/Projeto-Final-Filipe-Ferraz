@@ -42,7 +42,7 @@ function player.move(cmd)
     limitY = dungeonWidth
     sleepTime = terrenoG[dungeon[bloco.x][bloco.y].terreno]/100
   end
-  sleepTime = .1
+  sleepTime = 0--.1
 	love.timer.sleep(sleepTime)
 	if cmd ~= nil then
 		--print(cmd)

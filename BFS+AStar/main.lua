@@ -12,14 +12,20 @@ function printcmd(text)
   io.close(f)
 end
 
-function printcoordinates(text,curr)
+function printcoordinates(text,curr,t)
   local f = io.open("Coordenadas.txt","a")
-  f:write("coordenadas"..text.."\n")
+  f:write("coordenadas"..text.." tempo: "..t.."\n")
   while( curr.father ~= nil ) do
     f:write("x: "..curr.x.." y: "..curr.y.."\n")
     curr = curr.father
   end
   f:write("x: "..curr.x.." y: "..curr.y.."\n")
+  io.close(f)
+end
+
+function printtime(t)
+  local f = io.open("tempo.txt","a")
+  f:write("\t"..t)
   io.close(f)
 end
 
@@ -72,7 +78,7 @@ function love.load()
   local openList1 = {}
   local closedList1 = {}
   local BFSfim = false
-  BFSdepth = 5
+  BFSdepth = 1
   thread = {}
   totalcost = 0
   terrain = 'g'
@@ -158,7 +164,8 @@ function love.update(dt)
     player.update()
 		--Program end
 		if act == 0 then
-			love.event.wait()
+			--love.event.wait()
+      printtime("\n")
 			love.event.quit()
 		end
 		
@@ -166,6 +173,7 @@ function love.update(dt)
 		startpoint.y = bloco.y
 		
 		path_cmd = {}
+    tempo = love.timer.getTime()
 		if outside == true then
 			openList1, closedList1, BFSfim = LimitedBFS(startpoint,goalpoint[act],BFSdepth)
       if BFSfim then
@@ -217,6 +225,7 @@ function love.update(dt)
     if finish == false then
       finish = channelEnd:pop() or false
     else
+      tempo = love.timer.getTime() - tempo
       if outside == true then
         act = act - 1
         dungeon_act = 1
@@ -235,7 +244,8 @@ function love.update(dt)
       end
       path_cmd = temp1
       printcmd(" completo")
-      printcoordinates(" completa",finish[1])
+      printcoordinates(" completa",finish[1], tempo)
+      printtime(tempo)
       cmdCont = 1
       mode = 1
       finish = false
