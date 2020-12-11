@@ -3,8 +3,15 @@ require "player"
 require "LimitedBFS"
 require "AStar"
 
+function tableEmpty (self)
+    for _, _ in pairs(self) do
+        return false
+    end
+    return true
+end
+
 function printcmd(text)
-  local f = io.open("Caminho.txt","a")
+  local f = io.open(path.."\\Caminho.txt","a")
   f:write("caminho"..text.."\n")
   for i=1,#path_cmd do
     f:write(path_cmd[#path_cmd-i+1].."\n")
@@ -13,7 +20,7 @@ function printcmd(text)
 end
 
 function printcoordinates(text,curr,t)
-  local f = io.open("Coordenadas.txt","a")
+  local f = io.open(path.."\\Coordenadas.txt","a")
   f:write("coordenadas"..text.." tempo: "..t.."\n")
   while( curr.father ~= nil ) do
     f:write("x: "..curr.x.." y: "..curr.y.."\n")
@@ -24,7 +31,7 @@ function printcoordinates(text,curr,t)
 end
 
 function printtime(t)
-  local f = io.open("tempo.txt","a")
+  local f = io.open(path.."\\Tempo.txt","a")
   f:write("\t"..t)
   io.close(f)
 end
@@ -73,29 +80,40 @@ function create_path_cmds(path)
   return cmd
 end
 
-function love.load()
+function love.load(arg)
   --Inicialização de variáveis
   local openList1 = {}
   local closedList1 = {}
   local BFSfim = false
-  BFSdepth = 1
+  BFSDepth = tonumber(arg[1]) or 5
+  path = arg[2] or "."
   thread = {}
   totalcost = 0
   terrain = 'g'
   outside = true
   
   channel0 = love.thread.getChannel("geral")
+  channelMap = love.thread.getChannel("mapa")
   channelEnd = love.thread.getChannel("fim")
+  
+  if BFSDepth == 0 then
+    thread[1] = love.thread.newThread("thread.lua")
+  else
+    for i=1,4*BFSDepth do
+              thread[i] = love.thread.newThread("thread.lua")
+    end
+  end
 
   startpoint = {}
   goalpoint = {}
   dungeon_goalpoint = {}
+  finish = {}
 
   act = 4
   numact = 4
   dungeon_act = 1
   dungeon_back = false
-  finish = false
+  --finish = false
 
   for i=1,numact do
 
@@ -108,7 +126,7 @@ function love.load()
 	--song = love.audio.newSource("ZeldaThemeSong.mp3","stream")
 	--love.audio.play(song)
 	
-	map.load()
+	map.load(path)
 	player.load()
 	
 	--Loading Goal Points
@@ -161,6 +179,7 @@ function love.update(dt)
   
   if mode == 0 then
     channelEnd:clear()
+    channelMap:clear()
     player.update()
 		--Program end
 		if act == 0 then
@@ -173,33 +192,50 @@ function love.update(dt)
 		startpoint.y = bloco.y
 		
 		path_cmd = {}
-    tempo = love.timer.getTime()
 		if outside == true then
-			openList1, closedList1, BFSfim = LimitedBFS(startpoint,goalpoint[act],BFSdepth)
+      tempoBFS = love.timer.getTime()
+			openList1, closedList1, BFSfim = LimitedBFS(startpoint,goalpoint[act],BFSDepth)
+      tempoBFS = love.timer.getTime() - tempoBFS
       if BFSfim then
-        finish = openList1[1]
+        finish[1] = openList1[1]
+        finish[2] = nil
+        finish[3] = 0
       else
         if openList1 then
+          channelMap:push({goalpoint[act],outside,0,closedList1,level,levelSize,terrenoG,mapa})
           for index, threadStart in pairs(openList1) do
             path_cmd = create_path_cmds(Reconstruct_path(openList1[index]))
-            printcmd(" BFS "..index.." start "..threadStart.x.." "..threadStart.y)
-            thread[index] = love.thread.newThread("thread.lua")
-            channel0:push({threadStart, goalpoint[act],mapa,outside,index,0,closedList1,path_cmd})
+            --printcmd(" BFS "..index.." start "..threadStart.x.." "..threadStart.y)
+            --thread[index] = love.thread.newThread("thread.lua")
+            channel0:push({threadStart,path_cmd})
+            --thread[index]:start()
+          end
+          --tempo = love.timer.getTime()
+          for index, _ in pairs(openList1) do
             thread[index]:start()
           end
         end
       end
 		else
-			openList1, closedList1, BFSfim = LimitedBFS(startpoint,dungeon_goalpoint[dungeon_act],BFSdepth)
+      tempoBFS = love.timer.getTime()
+			openList1, closedList1, BFSfim = LimitedBFS(startpoint,dungeon_goalpoint[dungeon_act],BFSDepth)
+      tempoBFS = love.timer.getTime() - tempoBFS
       if BFSfim then
-        finish = openList1[1]
+        finish[1] = openList1[1]
+        finish[2] = nil
+        finish[3] = 0
       else
         if openList1 then
+          channelMap:push({dungeon_goalpoint[dungeon_act],outside,dungeon,closedList1,level,dungeonSize,terrenoG,mapa})
           for index, threadStart in pairs(openList1) do
             path_cmd = create_path_cmds(Reconstruct_path(openList1[index]))
-            printcmd(" BFS "..index.." start "..threadStart.x.." "..threadStart.y)
-            thread[index] = love.thread.newThread("thread.lua")
-            channel0:push({threadStart, dungeon_goalpoint[dungeon_act],mapa,outside,index,dungeon,closedList1,path_cmd})
+            --printcmd(" BFS "..index.." start "..threadStart.x.." "..threadStart.y)
+            --thread[index] = love.thread.newThread("thread.lua")
+            channel0:push({threadStart,path_cmd})
+            --thread[index]:start()
+          end
+          --tempo = love.timer.getTime()
+          for index, _ in pairs(openList1) do
             thread[index]:start()
           end
         end
@@ -222,10 +258,11 @@ function love.update(dt)
 	end
   
   if mode == 2 then
-    if finish == false then
-      finish = channelEnd:pop() or false
+    if tableEmpty(finish) then
+      finish = channelEnd:pop() or finish
     else
-      tempo = love.timer.getTime() - tempo
+      tempoTotal = finish[3] + tempoBFS
+      printtime(tempoTotal)
       if outside == true then
         act = act - 1
         dungeon_act = 1
@@ -239,16 +276,19 @@ function love.update(dt)
       path_cmd = {}
       temp1 = finish[2]
       temp2 = create_path_cmds(Reconstruct_path(finish[1]))
-      for i=1,#temp2 do
-        temp1[#temp1+1]=temp2[i]
+      if temp1 then
+        for i=1,#temp2 do
+          temp1[#temp1+1]=temp2[i]
+        end
+        path_cmd = temp1
+      else
+        path_cmd = temp2
       end
-      path_cmd = temp1
-      printcmd(" completo")
-      printcoordinates(" completa",finish[1], tempo)
-      printtime(tempo)
+      --printcmd(" completo")
+      --printcoordinates(" completa",finish[1], tempo)
       cmdCont = 1
       mode = 1
-      finish = false
+      finish = {}
     end
   end
 end
@@ -265,4 +305,5 @@ function love.draw()
   love.graphics.print("startx: "..startpoint.x,775,120)
   love.graphics.print("starty: "..startpoint.y,775,150)
   love.graphics.print("mode: "..mode,775,180)
+  love.graphics.print("BFSD: "..BFSDepth,775,210)
 end

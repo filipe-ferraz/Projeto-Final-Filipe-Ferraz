@@ -1,7 +1,7 @@
 map = {}
 
 
-function map.load()
+function map.load(path)
   --Inicialização de variáveis
   mapa = 0
   color = {}
@@ -68,7 +68,7 @@ function map.load()
   map.goalpoint[1].y = 6
 
   --goalCont = 2
-  local f = io.open("OverworldLogic.txt","r")
+  local f = io.open(path.."\\OverworldLogic.txt","r")
 
   if f == nil then
     print("O arquivo não existe")
@@ -76,7 +76,7 @@ function map.load()
   end
 
   i = 0
-  for lines in io.lines("OverworldLogic.txt") do
+  for lines in io.lines(path.."\\OverworldLogic.txt") do
     
     local j
     
@@ -145,7 +145,7 @@ function load_dungeon(mapa)
 	dungeon = {}
 	
 	if (mapa == 1) then
-		f = io.open("Dungeon1Logic.txt","r")
+		f = io.open(path.."\\Dungeon1Logic.txt","r")
 		
 		if f == nil then
 			print("O arquivo não existe")
@@ -158,7 +158,7 @@ function load_dungeon(mapa)
 
 		i = 0
 
-		for lines in io.lines("Dungeon1Logic.txt") do
+		for lines in io.lines(path.."\\Dungeon1Logic.txt") do
       local j
       
 			i = i + 1
@@ -180,7 +180,7 @@ function load_dungeon(mapa)
 			end
 		end
 	elseif (mapa == 2) then
-		f = io.open("Dungeon2Logic.txt","r")
+		f = io.open(path.."\\Dungeon2Logic.txt","r")
 		
 		if f == nil then
 			print("O arquivo não existe")
@@ -193,7 +193,7 @@ function load_dungeon(mapa)
 
 		i = 0
 
-		for lines in io.lines("Dungeon2Logic.txt") do
+		for lines in io.lines(path.."\\Dungeon2Logic.txt") do
       
       local j
 			i = i + 1
@@ -215,7 +215,7 @@ function load_dungeon(mapa)
 			end
 		end
 	else
-		f = io.open("Dungeon3Logic.txt","r")
+		f = io.open(path.."\\Dungeon3Logic.txt","r")
 		if f == nil then
 		 print("O arquivo não existe")
 		 return nil
@@ -227,7 +227,7 @@ function load_dungeon(mapa)
 
 		i = 0
 
-		for lines in io.lines("Dungeon3Logic.txt") do
+		for lines in io.lines(path.."\\Dungeon3Logic.txt") do
       local j
       
 			i = i + 1
