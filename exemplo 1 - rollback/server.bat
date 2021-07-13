@@ -1,0 +1,1 @@
+D:\Filipe\Desktop\Faculdade\luasocket-2.0.2-lua-5.1.2-Win32-vc8\lua5.1.exe server.lua
